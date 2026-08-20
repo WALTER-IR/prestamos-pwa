@@ -1,69 +1,46 @@
 (function () {
   "use strict";
-  const DB_NAME = "prestamos-pwa";
-  const DB_VER = 1;
-  let _db = null;
 
-  function openDB() {
-    return new Promise(function (resolve, reject) {
-      if (_db) return resolve(_db);
-      var req = indexedDB.open(DB_NAME, DB_VER);
-      req.onupgradeneeded = function (e) {
-        var db = e.target.result;
-        if (!db.objectStoreNames.contains("clientes")) {
-          var s = db.createObjectStore("clientes", { keyPath: "id" });
-          s.createIndex("nombre", "nombre");
-        }
-        if (!db.objectStoreNames.contains("prestamos")) {
-          var s = db.createObjectStore("prestamos", { keyPath: "id" });
-          s.createIndex("clienteId", "clienteId");
-          s.createIndex("estado", "estado");
-        }
-        if (!db.objectStoreNames.contains("pagos")) {
-          var s = db.createObjectStore("pagos", { keyPath: "id" });
-          s.createIndex("prestamoId", "prestamoId");
-        }
-        if (!db.objectStoreNames.contains("config")) {
-          db.createObjectStore("config", { keyPath: "key" });
-        }
-        if (!db.objectStoreNames.contains("usuarios")) {
-          db.createObjectStore("usuarios", { keyPath: "id" });
-        }
-        if (!db.objectStoreNames.contains("auditoria")) {
-          var s = db.createObjectStore("auditoria", { keyPath: "id" });
-        }
-        if (!db.objectStoreNames.contains("sesion")) {
-          db.createObjectStore("sesion", { keyPath: "key" });
-        }
-      };
-      req.onsuccess = function (e) { _db = e.target.result; resolve(_db); };
-      req.onerror = function () { reject(req.error); };
-    });
+  function lsGet(store) {
+    try {
+      var raw = localStorage.getItem("db_" + store);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
   }
 
-  function tx(store, mode) {
-    return openDB().then(function (db) {
-      var t = db.transaction(store, mode);
-      return { t: t, s: t.objectStore(store) };
-    });
-  }
-
-  function req2p(req) {
-    return new Promise(function (resolve, reject) {
-      req.onsuccess = function () { resolve(req.result); };
-      req.onerror = function () { reject(req.error); };
-    });
-  }
-
-  function promisifyTx(t) {
-    return new Promise(function (res) { t.oncomplete = res; });
+  function lsSet(store, arr) {
+    localStorage.setItem("db_" + store, JSON.stringify(arr));
   }
 
   var DB = {
-    getAll: function (store) { return tx(store, "readonly").then(function (r) { return req2p(r.s.getAll()); }); },
-    get: function (store, key) { return tx(store, "readonly").then(function (r) { return req2p(r.s.get(key)); }); },
-    put: function (store, val) { return tx(store, "readwrite").then(function (r) { var p = req2p(r.s.put(val)); return p.then(function () { return promisifyTx(r.t); }); }); },
-    remove: function (store, key) { return tx(store, "readwrite").then(function (r) { var p = req2p(r.s.delete(key)); return p.then(function () { return promisifyTx(r.t); }); }); },
+    getAll: function (store) {
+      return Promise.resolve(lsGet(store));
+    },
+    get: function (store, key) {
+      var arr = lsGet(store);
+      for (var i = 0; i < arr.length; i++) {
+        if (arr[i].id === key) return Promise.resolve(arr[i]);
+      }
+      return Promise.resolve(undefined);
+    },
+    put: function (store, val) {
+      var arr = lsGet(store);
+      for (var i = 0; i < arr.length; i++) {
+        if (arr[i].id === val.id) { arr[i] = val; lsSet(store, arr); return Promise.resolve(); }
+      }
+      arr.push(val);
+      lsSet(store, arr);
+      return Promise.resolve();
+    },
+    remove: function (store, key) {
+      var arr = lsGet(store);
+      var out = [];
+      for (var i = 0; i < arr.length; i++) {
+        if (arr[i].id !== key) out.push(arr[i]);
+      }
+      lsSet(store, out);
+      return Promise.resolve();
+    },
     getConfig: function () {
       return DB.getAll("config").then(function (rows) {
         var cfg = {};
