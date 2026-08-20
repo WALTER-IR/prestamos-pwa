@@ -943,21 +943,39 @@
     return false;
   };
 
-  setupEvents();
   usuarios.push({ id: "us-admin", nombre: "admin", dni: "admin", clave: "admin", rol: 2 });
 
-  setTimeout(function () {
+  function showLoginNow() {
     var sp = document.getElementById("splash");
     if (sp) sp.classList.add("gone");
     var ls = document.getElementById("loginScreen");
     if (ls) ls.classList.remove("hidden");
-  }, 600);
+  }
 
-  window.startApp = function () {
+  function ready(fn) {
+    if (document.readyState !== "loading") { fn(); }
+    else { document.addEventListener("DOMContentLoaded", fn); }
+  }
+
+  var _initDone = false;
+  function safeInit() {
+    if (_initDone) return;
+    _initDone = true;
     init().then(function () {}).catch(function (err) {
       console.error("Boot error:", err);
     });
-  };
+  }
 
-  setTimeout(function () { window.startApp(); }, 200);
+  ready(function () {
+    setupEvents();
+    setTimeout(showLoginNow, 600);
+    window.startApp = safeInit;
+    safeInit();
+  });
+
+  setTimeout(function () {
+    try { setupEvents(); } catch(e) {}
+    showLoginNow();
+    safeInit();
+  }, 500);
 })();
