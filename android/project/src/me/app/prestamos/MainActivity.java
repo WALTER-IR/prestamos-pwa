@@ -15,6 +15,10 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 public class MainActivity extends Activity {
 
     private WebView webView;
@@ -60,7 +64,22 @@ public class MainActivity extends Activity {
             public boolean onConsoleMessage(ConsoleMessage cm) { return true; }
         });
 
-        webView.loadUrl("file:///android_asset/www/index.html");
+        try {
+            String html = readAsset("www/index.html");
+            webView.loadDataWithBaseURL("https://appassets.androidplatform.net/", html, "text/html", "UTF-8", null);
+        } catch (Exception e) {
+            webView.loadData("<html><body><h1>Error</h1><p>" + e.getMessage() + "</p></body></html>", "text/html", "UTF-8");
+        }
+    }
+
+    private String readAsset(String path) throws IOException {
+        InputStream is = getAssets().open(path);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] buf = new byte[4096];
+        int n;
+        while ((n = is.read(buf)) != -1) baos.write(buf, 0, n);
+        is.close();
+        return baos.toString("UTF-8");
     }
 
     @Override
