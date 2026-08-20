@@ -952,27 +952,23 @@
 
   window.onerror = function (msg, url, line) {
     var d = document.getElementById("splash");
-    if (d) { d.innerHTML = "<div style='padding:20px;color:#fff;font-size:14px;text-align:left'>ERROR: " + msg + " (L" + line + ")</div>"; d.classList.remove("gone"); }
+    if (d) { d.innerHTML = "<div style='padding:20px;color:#fff;font-size:14px;text-align:left'>ERROR: " + msg + " (L" + line + ")</div>"; }
     return false;
   };
 
-  var _booted = false;
-  function boot() {
-    if (_booted) return;
-    _booted = true;
-    init().then(function () {}).catch(function (err) {
-      console.error("Boot error:", err);
-      var sp = document.getElementById("splash");
-      if (sp) sp.classList.add("gone");
-      var ls = document.getElementById("loginScreen");
-      if (ls) ls.classList.remove("hidden");
-    });
+  function showLogin() {
+    var sp = document.getElementById("splash");
+    if (sp) sp.classList.add("gone");
+    var ls = document.getElementById("loginScreen");
+    if (ls) ls.classList.remove("hidden");
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
-  } else {
-    boot();
-  }
-  setTimeout(boot, 500);
+  window.startApp = function () {
+    init().then(function () {}).catch(function (err) {
+      console.error("Boot error:", err);
+      showLogin();
+    });
+  };
+
+  setTimeout(function () { window.startApp(); }, 200);
 })();
