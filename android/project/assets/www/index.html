@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="theme-color" content="#7C3AED"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <title>Gestion de Prestamos</title>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <link rel="icon" type="image/png" href="icons/icon-192.png"/>
+  <link rel="stylesheet" href="css/styles.css"/>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash" class="splash">
+  <div class="splash-ico">$</div>
+  <div class="splash-title">Gestion de Prestamos</div>
+  <div class="spinner"></div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="login-screen hidden">
+  <div class="login-box">
+    <div class="login-ico">$</div>
+    <h2>Gestion de Prestamos</h2>
+    <p id="loginSub" class="login-sub">Inicia sesion</p>
+    <label class="flabel">Usuario</label>
+    <input type="text" id="loginUser" class="finput" placeholder="Usuario o DNI"/>
+    <label class="flabel">Contrasena</label>
+    <input type="password" id="loginPass" class="finput" placeholder="Contrasena"/>
+    <p id="loginErr" class="login-err hidden"></p>
+    <button class="btn primary full" id="btnLogin">Entrar</button>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<header class="topbar hidden" id="topbar">
+  <button class="hamburger" id="btnMenu">&#9776;</button>
+  <div class="brand">
+    <span class="brand-icon" id="brandIcon">$</span>
+    <span class="brand-name" id="brandName">Prestamos</span>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <span class="brand-icon">$</span>
+    <span class="brand-name">Prestamos</span>
+  </div>
+  <nav>
+    <button class="nav-item active" data-view="dashboard">Panel</button>
+    <button class="nav-item" data-view="clientes">Clientes</button>
+    <button class="nav-item" data-view="prestamos">Prestamos</button>
+    <button class="nav-item" data-view="pagos">Pagos</button>
+    <button class="nav-item" data-view="historial">Historial</button>
+    <button class="nav-item" data-view="reportes">Reportes</button>
+    <button class="nav-item" data-view="config">Ajustes</button>
+  </nav>
+  <div class="sidebar-foot">
+    <span id="sesionInfo" class="sesion-info"></span>
+    <button class="btn ghost" id="btnLogout">Salir</button>
+  </div>
+</aside>
+<div class="backdrop hidden" id="backdrop"></div>
+
+<!-- CONTENIDO -->
+<main class="content hidden" id="mainContent">
+
+  <!-- DASHBOARD -->
+  <section id="view-dashboard" class="view">
+    <h2 class="vt">Panel de control</h2>
+    <div class="kpi-grid" id="kpiGrid"></div>
+    <div class="card">
+      <h3 class="ct">Prestamos recientes</h3>
+      <div id="dashRecent"></div>
+    </div>
+  </section>
+
+  <!-- CLIENTES -->
+  <section id="view-clientes" class="view hidden">
+    <div class="view-head">
+      <h2 class="vt">Clientes</h2>
+      <button class="btn primary" id="btnNuevoCliente">+ Nuevo</button>
+    </div>
+    <input type="search" id="searchCliente" class="finput" placeholder="Buscar cliente..."/>
+    <div id="clienteList"></div>
+    <div id="clienteEmpty" class="empty hidden"><p>No hay clientes registrados.</p></div>
+  </section>
+
+  <!-- PRESTAMOS -->
+  <section id="view-prestamos" class="view hidden">
+    <div class="view-head">
+      <h2 class="vt">Prestamos</h2>
+      <button class="btn primary" id="btnNuevoPrestamo">+ Nuevo</button>
+    </div>
+    <div class="toolbar">
+      <input type="search" id="searchPrestamo" class="finput" placeholder="Buscar..."/>
+      <select id="filterEstado" class="finput select">
+        <option value="">Todos</option>
+        <option value="activo">Activo</option>
+        <option value="pagado">Pagado</option>
+        <option value="vencido">Vencido</option>
+        <option value="cancelado">Cancelado</option>
+      </select>
+    </div>
+    <div id="prestamoList"></div>
+    <div id="prestamoEmpty" class="empty hidden"><p>No hay prestamos registrados.</p></div>
+  </section>
+
+  <!-- PAGOS -->
+  <section id="view-pagos" class="view hidden">
+    <div class="view-head">
+      <h2 class="vt">Pagos</h2>
+      <button class="btn primary" id="btnNuevoPago">+ Registrar pago</button>
+    </div>
+    <select id="filterPagoPrestamo" class="finput select">
+      <option value="">Todos los prestamos</option>
+    </select>
+    <div id="pagoList"></div>
+    <div id="pagoEmpty" class="empty hidden"><p>No hay pagos registrados.</p></div>
+  </section>
+
+  <!-- HISTORIAL -->
+  <section id="view-historial" class="view hidden">
+    <h2 class="vt">Historial detallado</h2>
+    <div class="toolbar">
+      <select id="histCliente" class="finput select"><option value="">Todos los clientes</option></select>
+      <select id="histTipo" class="finput select">
+        <option value="">Todos</option>
+        <option value="prestamo">Prestamo</option>
+        <option value="pago">Pago</option>
+        <option value="vencimiento">Vencimiento</option>
+      </select>
+      <input type="date" id="histDesde" class="finput"/>
+      <input type="date" id="histHasta" class="finput"/>
+      <button class="btn primary" id="btnHistSearch">Buscar</button>
+      <button class="btn outline" id="btnHistClear">Limpiar</button>
+    </div>
+    <div id="histList"></div>
+    <div id="histEmpty" class="empty hidden"><p>Sin registros.</p></div>
+  </section>
+
+  <!-- REPORTES -->
+  <section id="view-reportes" class="view hidden">
+    <h2 class="vt">Reportes</h2>
+    <div class="toolbar">
+      <input type="month" id="reporteMes" class="finput"/>
+      <button class="btn primary" id="btnGenReporte">Generar</button>
+      <button class="btn outline" id="btnExportCsv">Exportar CSV</button>
+    </div>
+    <div class="kpi-grid" id="reporteStats"></div>
+    <div class="card">
+      <h3 class="ct" id="reporteTitle">Detalle del mes</h3>
+      <div class="table-wrap">
+        <table class="dtable">
+          <thead><tr><th>Fecha</th><th>Tipo</th><th>Cliente</th><th>Descripcion</th><th>Monto</th></tr></thead>
+          <tbody id="reporteTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONFIGURACION -->
+  <section id="view-config" class="view hidden">
+    <h2 class="vt">Configuracion</h2>
+
+    <div class="card">
+      <h3 class="ct toggle-card" data-toggle="cfgCuenta">Mi cuenta</h3>
+      <div id="cfgCuenta" class="card-body">
+        <p id="miCuentaInfo"></p>
+        <button class="btn outline full" id="btnMiPerfil">Editar perfil</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="ct toggle-card" data-toggle="cfgNegocio">Datos del negocio</h3>
+      <div id="cfgNegocio" class="card-body hidden">
+        <label class="flabel">Nombre del negocio</label>
+        <input type="text" id="cfgEmpresa" class="finput" placeholder="Ej. Prestamos Express"/>
+        <label class="flabel">Tasa de interes mensual (%)</label>
+        <input type="number" id="cfgTasa" class="finput" min="0" step="0.5" value="10"/>
+        <label class="flabel">Moneda</label>
+        <select id="cfgMoneda" class="finput select">
+          <option value="S/">S/ (Soles)</option>
+          <option value="$">$ (Dolares)</option>
+          <option value="Bs.">Bs. (Bolivares)</option>
+          <option value="Q">Q (Quetzales)</option>
+        </select>
+        <button class="btn primary full" id="btnSaveNegocio">Guardar</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="ct toggle-card" data-toggle="cfgUsuarios">Usuarios</h3>
+      <div id="cfgUsuarios" class="card-body hidden">
+        <button class="btn primary full" id="btnNuevoUsuario">+ Agregar usuario</button>
+        <div id="usuariosList"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="ct toggle-card" data-toggle="cfgApariencia">Apariencia</h3>
+      <div id="cfgApariencia" class="card-body hidden">
+        <label class="flabel">Color principal</label>
+        <div class="color-grid" id="colorGrid"></div>
+        <input type="color" id="cfgColor" value="#7C3AED" class="input-color"/>
+        <label class="flabel">Logo</label>
+        <input type="file" id="logoInput" class="finput" accept="image/*"/>
+        <img id="logoPreview" class="logo-preview hidden" alt="Logo"/>
+        <button class="btn ghost" id="btnClearLogo">Quitar logo</button>
+        <button class="btn primary full" id="btnSaveApariencia">Guardar apariencia</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="ct toggle-card" data-toggle="cfgBackup">Copia de seguridad</h3>
+      <div id="cfgBackup" class="card-body hidden">
+        <button class="btn outline" id="btnExport">Exportar datos</button>
+        <button class="btn outline" id="btnImport">Importar datos</button>
+        <input type="file" id="fileImport" class="hidden" accept="application/json"/>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="ct toggle-card" data-toggle="cfgAudit">Auditoria</h3>
+      <div id="cfgAudit" class="card-body hidden">
+        <div id="auditList"></div>
+        <p id="auditEmpty" class="card-text">Sin registros.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="ct">Acerca de</h3>
+      <div class="card-body">
+        <p class="card-text">Sistema de gestion de prestamos v1.0.0</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- MODAL CLIENTE -->
+<div id="modalCliente" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="mcTitle">Nuevo cliente</h3>
+      <button class="modal-x" data-close="modalCliente">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="clId"/>
+      <label class="flabel">Nombre *</label>
+      <input type="text" id="clNombre" class="finput"/>
+      <label class="flabel">Documento (DNI/RUC) *</label>
+      <input type="text" id="clDoc" class="finput"/>
+      <label class="flabel">Telefono</label>
+      <input type="text" id="clTel" class="finput"/>
+      <label class="flabel">Direccion</label>
+      <input type="text" id="clDir" class="finput"/>
+      <label class="flabel">Email</label>
+      <input type="email" id="clEmail" class="finput"/>
+      <label class="flabel">Notas</label>
+      <textarea id="clNotas" class="finput textarea" rows="2"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn outline" data-close="modalCliente">Cancelar</button>
+      <button class="btn primary" id="btnSaveCliente">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PRESTAMO -->
+<div id="modalPrestamo" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="mpTitle">Nuevo prestamo</h3>
+      <button class="modal-x" data-close="modalPrestamo">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="prId"/>
+      <label class="flabel">Cliente *</label>
+      <select id="prCliente" class="finput select"></select>
+      <label class="flabel">Monto del prestamo *</label>
+      <input type="number" id="prMonto" class="finput" min="0" step="0.01"/>
+      <label class="flabel">Tasa mensual (%)</label>
+      <input type="number" id="prTasa" class="finput" min="0" step="0.5" value="10"/>
+      <label class="flabel">Numero de cuotas *</label>
+      <input type="number" id="prCuotas" class="finput" min="1" value="12"/>
+      <label class="flabel">Monto entregado al cliente *</label>
+      <input type="number" id="prEntregado" class="finput" min="0" step="0.01"/>
+      <label class="flabel">Fecha inicio *</label>
+      <input type="date" id="prFecha" class="finput"/>
+      <label class="flabel">Frecuencia</label>
+      <select id="prFrecuencia" class="finput select">
+        <option value="mensual">Mensual</option>
+        <option value="quincenal">Quincenal</option>
+        <option value="semanal">Semanal</option>
+      </select>
+      <label class="flabel">Notas / Garantia</label>
+      <textarea id="prNotas" class="finput textarea" rows="2"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn outline" data-close="modalPrestamo">Cancelar</button>
+      <button class="btn primary" id="btnSavePrestamo">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PAGO -->
+<div id="modalPago" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Registrar pago</h3>
+      <button class="modal-x" data-close="modalPago">&times;</button>
+    </div>
+    <div class="modal-body">
+      <label class="flabel">Prestamo *</label>
+      <select id="pgPrestamo" class="finput select"></select>
+      <div id="pgInfo" class="info-box hidden"></div>
+      <label class="flabel">Monto *</label>
+      <input type="number" id="pgMonto" class="finput" min="0" step="0.01"/>
+      <label class="flabel">Fecha *</label>
+      <input type="date" id="pgFecha" class="finput"/>
+      <label class="flabel">Metodo</label>
+      <select id="pgMetodo" class="finput select">
+        <option value="efectivo">Efectivo</option>
+        <option value="transferencia">Transferencia</option>
+        <option value="deposito">Deposito</option>
+        <option value="qr">QR / Digital</option>
+      </select>
+      <label class="flabel">Notas</label>
+      <textarea id="pgNotas" class="finput textarea" rows="2"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn outline" data-close="modalPago">Cancelar</button>
+      <button class="btn primary" id="btnSavePago">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE PRESTAMO -->
+<div id="modalDetalle" class="modal-overlay hidden">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <h3 id="detTitle">Detalle</h3>
+      <button class="modal-x" data-close="modalDetalle">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="detInfo"></div>
+      <h3 class="ct" style="margin-top:16px">Pagos</h3>
+      <div id="detPagos"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn danger" id="btnCancelPrestamo">Cancelar prestamo</button>
+      <button class="btn outline" data-close="modalDetalle">Cerrar</button>
+      <button class="btn primary" id="btnPagoFromDet">Registrar pago</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL USUARIO -->
+<div id="modalUsuario" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="muTitle">Nuevo usuario</h3>
+      <button class="modal-x" data-close="modalUsuario">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="usId"/>
+      <label class="flabel">Nombre *</label>
+      <input type="text" id="usNombre" class="finput"/>
+      <label class="flabel">DNI *</label>
+      <input type="text" id="usDni" class="finput"/>
+      <label class="flabel">Contrasena (vacia = DNI)</label>
+      <input type="text" id="usClave" class="finput"/>
+      <label class="flabel">Permiso</label>
+      <select id="usRol" class="finput select">
+        <option value="0">Lectura</option>
+        <option value="1">Edicion</option>
+        <option value="2">Administrador</option>
+      </select>
+    </div>
+    <div class="modal-foot">
+      <button class="btn danger" id="btnDelUsuario">Eliminar</button>
+      <button class="btn outline" data-close="modalUsuario">Cancelar</button>
+      <button class="btn primary" id="btnSaveUsuario">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
