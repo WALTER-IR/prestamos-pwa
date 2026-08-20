@@ -950,13 +950,6 @@
     });
   }
 
-  setTimeout(function () {
-    var sp = document.getElementById("splash");
-    if (sp) sp.classList.add("gone");
-    var ls = document.getElementById("loginScreen");
-    if (ls) ls.classList.remove("hidden");
-  }, 3000);
-
   window.onerror = function (msg, url, line) {
     var d = document.getElementById("splash");
     if (d) { d.innerHTML = "<div style='padding:20px;color:#fff;font-size:14px;text-align:left'>ERROR: " + msg + " (L" + line + ")</div>"; }
