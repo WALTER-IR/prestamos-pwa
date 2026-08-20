@@ -1,8 +1,6 @@
 package me.app.prestamos;
 
 import android.app.Activity;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -10,18 +8,17 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.ConsoleMessage;
 import android.webkit.WebChromeClient;
-import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 public class MainActivity extends Activity {
 
     private WebView webView;
-    private AssetHttpServer httpServer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,21 +38,9 @@ public class MainActivity extends Activity {
         ws.setJavaScriptEnabled(true);
         ws.setDomStorageEnabled(true);
         ws.setDatabaseEnabled(true);
-        ws.setCacheMode(WebSettings.LOAD_DEFAULT);
+        ws.setAllowFileAccess(true);
 
-        webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                String url = request.getUrl().toString();
-                if (url.startsWith("http://") || url.startsWith("https://")) {
-                    try {
-                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-                    } catch (Exception ignored) {}
-                    return true;
-                }
-                return false;
-            }
-        });
+        webView.setWebViewClient(new WebViewClient());
 
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
@@ -63,18 +48,21 @@ public class MainActivity extends Activity {
         });
 
         try {
-            InputStream is = getAssets().open("www/index.html");
-            httpServer = new AssetHttpServer(is);
-            httpServer.start();
-            String url = "http://127.0.0.1:" + httpServer.getPort() + "/index.html";
-            webView.loadUrl(url);
+            String html = readAsset("www/index.html");
+            webView.loadDataWithBaseURL("http://localhost/", html, "text/html", "UTF-8", null);
         } catch (Exception e) {
-            webView.loadData(
-                "<html><body style='padding:20px;font-family:sans-serif'>"
-                + "<h2>Error</h2><p>" + e.getClass().getName() + ": " + e.getMessage() + "</p>"
-                + "</body></html>",
-                "text/html", "UTF-8");
+            webView.loadData("<html><body><h1>Error</h1><p>" + e.getMessage() + "</p></body></html>", "text/html", "UTF-8");
         }
+    }
+
+    private String readAsset(String path) throws IOException {
+        InputStream is = getAssets().open(path);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] buf = new byte[4096];
+        int n;
+        while ((n = is.read(buf)) != -1) baos.write(buf, 0, n);
+        is.close();
+        return baos.toString("UTF-8");
     }
 
     @Override
@@ -101,7 +89,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         webView.destroy();
-        if (httpServer != null) httpServer.stop();
         super.onDestroy();
     }
 }
