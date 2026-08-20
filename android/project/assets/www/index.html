@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8"/>
@@ -6,9 +6,145 @@
   <meta name="theme-color" content="#7C3AED"/>
   <meta name="mobile-web-app-capable" content="yes"/>
   <title>Gestion de Prestamos</title>
-  <link rel="manifest" href="manifest.webmanifest"/>
-  <link rel="icon" type="image/png" href="icons/icon-192.png"/>
-  <link rel="stylesheet" href="css/styles.css"/>
+  
+  
+  <style>*{margin:0;padding:0;box-sizing:border-box}
+:root{--pri:#7C3AED;--pri-dark:#6D28D9;--pri-light:#A78BFA;--bg:#F3F4F6;--card:#FFF;--text:#1F2937;--muted:#6B7280;--border:#E5E7EB;--danger:#EF4444;--ok:#10B981;--info:#3B82F6;--radius:12px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.hidden{display:none!important}
+
+/* SPLASH */
+.splash{position:fixed;inset:0;background:var(--pri);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:#fff;transition:opacity .4s}
+.splash-ico{font-size:64px;margin-bottom:12px;background:rgba(255,255,255,.2);width:100px;height:100px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold}
+.splash-title{font-size:22px;font-weight:700;margin-bottom:16px}
+.spinner{width:36px;height:36px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.splash.gone{opacity:0;pointer-events:none}
+
+/* LOGIN */
+.login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+.login-box{background:var(--card);border-radius:var(--radius);padding:32px;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,.1);text-align:center}
+.login-ico{font-size:48px;margin-bottom:8px;background:var(--pri);color:#fff;width:80px;height:80px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:bold}
+.login-box h2{margin:12px 0 4px;font-size:20px}
+.login-sub{color:var(--muted);font-size:14px;margin-bottom:16px}
+.login-err{color:var(--danger);font-size:13px;margin:8px 0}
+
+/* FORM ELEMENTS */
+.flabel{display:block;font-size:13px;font-weight:600;margin:10px 0 4px;color:var(--text)}
+.finput{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:15px;background:var(--card);color:var(--text);outline:none;transition:border .2s}
+.finput:focus{border-color:var(--pri)}
+select.finput{appearance:auto}
+.textarea{resize:vertical;min-height:60px}
+.input-color{width:50px;height:40px;border:none;cursor:pointer;margin:4px 0}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 18px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;gap:6px}
+.btn.primary{background:var(--pri);color:#fff}
+.btn.primary:hover{background:var(--pri-dark)}
+.btn.outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn.outline:hover{background:var(--bg)}
+.btn.danger{background:var(--danger);color:#fff}
+.btn.ghost{background:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--danger)}
+.btn.full{width:100%}
+.btn.sm{padding:6px 12px;font-size:12px}
+
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:0;right:0;height:56px;background:var(--pri);color:#fff;display:flex;align-items:center;padding:0 12px;z-index:100;gap:12px}
+.hamburger{background:none;border:none;color:#fff;font-size:24px;cursor:pointer;padding:4px 8px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16px}
+.brand-icon{font-size:20px}
+
+/* SIDEBAR */
+.sidebar{position:fixed;top:0;left:-260px;width:260px;height:100vh;background:var(--card);z-index:200;transition:left .3s;box-shadow:2px 0 12px rgba(0,0,0,.1);display:flex;flex-direction:column}
+.sidebar.open{left:0}
+.sidebar-head{padding:20px 16px;display:flex;align-items:center;gap:10px;background:var(--pri);color:#fff;font-weight:700;font-size:16px}
+.sidebar nav{flex:1;overflow-y:auto;padding:8px 0}
+.nav-item{display:block;width:100%;padding:12px 20px;text-align:left;background:none;border:none;font-size:15px;color:var(--text);cursor:pointer;transition:background .2s}
+.nav-item:hover,.nav-item.active{background:var(--pri);color:#fff}
+.sidebar-foot{padding:12px 16px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.sesion-info{font-size:12px;color:var(--muted)}
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150}
+
+/* CONTENT */
+.content{padding:68px 16px 24px;max-width:900px;margin:0 auto}
+.view{display:block}
+.view.hidden{display:none}
+.view-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.vt{font-size:20px;font-weight:700;margin-bottom:12px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}
+.toolbar .finput,.toolbar .select{flex:1;min-width:140px}
+.toolbar .btn{white-space:nowrap}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.kpi-label{font-size:12px;color:var(--muted);margin-bottom:4px}
+.kpi-value{font-size:22px;font-weight:700}
+
+/* CARDS */
+.card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.ct{font-size:16px;font-weight:600;margin-bottom:8px;cursor:default}
+.toggle-card{cursor:pointer;user-select:none}
+.toggle-card::after{content:' \\25BC';font-size:12px;color:var(--muted)}
+.card-body{padding-top:4px}
+.card-text{font-size:14px;color:var(--muted);margin-bottom:8px}
+
+/* LIST ITEMS */
+.list-item{background:var(--card);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);cursor:pointer;transition:box-shadow .2s}
+.list-item:hover{box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.li-title{font-weight:600;font-size:15px;margin-bottom:2px}
+.li-sub{font-size:13px;color:var(--muted)}
+.li-row{display:flex;justify-content:space-between;align-items:center}
+.li-right{text-align:right}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge.activo{background:#DBEAFE;color:#1D4ED8}
+.badge.pagado{background:#D1FAE5;color:#065F46}
+.badge.vencido{background:#FEE2E2;color:#991B1B}
+.badge.cancelado{background:#E5E7EB;color:#374151}
+
+/* TABLE */
+.table-wrap{overflow-x:auto}
+.dtable{width:100%;border-collapse:collapse;font-size:14px}
+.dtable th{background:var(--bg);padding:8px 12px;text-align:left;font-weight:600;white-space:nowrap}
+.dtable td{padding:8px 12px;border-bottom:1px solid var(--border)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:flex-end;justify-content:center}
+.modal{background:var(--card);border-radius:16px 16px 0 0;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom)}
+.modal-lg{max-width:650px}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:1}
+.modal-head h3{font-size:17px;font-weight:700}
+.modal-x{background:none;border:none;font-size:24px;cursor:pointer;color:var(--muted);padding:4px 8px}
+.modal-body{padding:16px}
+.modal-foot{padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--card)}
+
+/* INFO BOX */
+.info-box{background:var(--bg);border-radius:8px;padding:12px;margin:8px 0;font-size:13px;line-height:1.5}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1F2937;color:#fff;padding:12px 24px;border-radius:24px;font-size:14px;z-index:9999;animation:slideUp .3s}
+@keyframes slideUp{from{transform:translateX(-50%) translateY(20px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+
+/* COLOR GRID */
+.color-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:8px 0}
+.color-swatch{width:100%;aspect-ratio:1;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:all .2s}
+.color-swatch.active{border-color:var(--text);transform:scale(1.15)}
+.logo-preview{max-width:120px;max-height:60px;margin:8px 0;border-radius:8px}
+
+/* RESPONSIVE */
+@media(min-width:600px){
+  .sidebar{top:0}
+  .modal{border-radius:16px;margin-bottom:20px}
+  .content{padding:72px 24px 24px}
+}
+@media(min-width:900px){
+  .content{margin-left:260px;padding:72px 32px 32px}
+}
+</style>
 </head>
 <body>
 
@@ -390,8 +526,1057 @@
 
 <div id="toast" class="toast hidden"></div>
 
-<script src="js/config.js"></script>
-<script src="js/db.js"></script>
-<script src="js/app.js"></script>
+<script>window.APP_CONFIG = { APP_VERSION: "1.0.0", APP_NAME: "Gestion de Prestamos", UPDATE_URL: "" };
+</script>
+<script>(function () {
+  "use strict";
+  const DB_NAME = "prestamos-pwa";
+  const DB_VER = 1;
+  let _db = null;
+
+  function openDB() {
+    return new Promise(function (resolve, reject) {
+      if (_db) return resolve(_db);
+      var req = indexedDB.open(DB_NAME, DB_VER);
+      req.onupgradeneeded = function (e) {
+        var db = e.target.result;
+        if (!db.objectStoreNames.contains("clientes")) {
+          var s = db.createObjectStore("clientes", { keyPath: "id" });
+          s.createIndex("nombre", "nombre");
+        }
+        if (!db.objectStoreNames.contains("prestamos")) {
+          var s = db.createObjectStore("prestamos", { keyPath: "id" });
+          s.createIndex("clienteId", "clienteId");
+          s.createIndex("estado", "estado");
+        }
+        if (!db.objectStoreNames.contains("pagos")) {
+          var s = db.createObjectStore("pagos", { keyPath: "id" });
+          s.createIndex("prestamoId", "prestamoId");
+        }
+        if (!db.objectStoreNames.contains("config")) {
+          db.createObjectStore("config", { keyPath: "key" });
+        }
+        if (!db.objectStoreNames.contains("usuarios")) {
+          db.createObjectStore("usuarios", { keyPath: "id" });
+        }
+        if (!db.objectStoreNames.contains("auditoria")) {
+          var s = db.createObjectStore("auditoria", { keyPath: "id" });
+        }
+        if (!db.objectStoreNames.contains("sesion")) {
+          db.createObjectStore("sesion", { keyPath: "key" });
+        }
+      };
+      req.onsuccess = function (e) { _db = e.target.result; resolve(_db); };
+      req.onerror = function () { reject(req.error); };
+    });
+  }
+
+  function tx(store, mode) {
+    return openDB().then(function (db) {
+      var t = db.transaction(store, mode);
+      return { t: t, s: t.objectStore(store) };
+    });
+  }
+
+  function req2p(req) {
+    return new Promise(function (resolve, reject) {
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error); };
+    });
+  }
+
+  function promisifyTx(t) {
+    return new Promise(function (res) { t.oncomplete = res; });
+  }
+
+  var DB = {
+    getAll: function (store) { return tx(store, "readonly").then(function (r) { return req2p(r.s.getAll()); }); },
+    get: function (store, key) { return tx(store, "readonly").then(function (r) { return req2p(r.s.get(key)); }); },
+    put: function (store, val) { return tx(store, "readwrite").then(function (r) { var p = req2p(r.s.put(val)); return p.then(function () { return promisifyTx(r.t); }); }); },
+    remove: function (store, key) { return tx(store, "readwrite").then(function (r) { var p = req2p(r.s.delete(key)); return p.then(function () { return promisifyTx(r.t); }); }); },
+    getConfig: function () {
+      return DB.getAll("config").then(function (rows) {
+        var cfg = {};
+        rows.forEach(function (r) { cfg[r.key] = r.value; });
+        return Object.assign({ empresa: "Prestamista", tasaInteres: 10, moneda: "S/", colorPrimario: "#7C3AED", logo: "" }, cfg);
+      });
+    },
+    setConfig: function (k, v) { return DB.put("config", { key: k, value: v }); },
+    getSesion: function () { return DB.get("sesion", "actual").then(function (r) { return r ? r.value : null; }); },
+    setSesion: function (v) { return DB.put("sesion", { key: "actual", value: v }); },
+    clearSesion: function () { return DB.remove("sesion", "actual"); },
+    getUsuarios: function () { return DB.getAll("usuarios"); },
+    putUsuario: function (u) { return DB.put("usuarios", u); },
+    deleteUsuario: function (id) { return DB.remove("usuarios", id); },
+    getAuditoria: function (max) {
+      return DB.getAll("auditoria").then(function (all) {
+        all.sort(function (a, b) { return a.id < b.id ? 1 : -1; });
+        return all.slice(0, max || 300);
+      });
+    },
+    putAuditoria: function (e) { return DB.put("auditoria", e); }
+  };
+  window.DB = DB;
+})();
+</script>
+<script>(function () {
+  "use strict";
+
+  var CFG = window.APP_CONFIG;
+  var $ = function (s) { return document.querySelector(s); };
+  var $ = function (s) { return Array.from(document.querySelectorAll(s)); };
+
+  var clientes = [], prestamos = [], pagos = [], usuarios = [], auditoria = [];
+  var sesion = null;
+  var appCfg = { empresa: "Prestamista", tasaInteres: 10, moneda: "S/", colorPrimario: "#7C3AED", logo: "" };
+  var currentView = "dashboard";
+  var currentDetailId = null;
+
+  var ROL = { LECTURA: 0, EDICION: 1, ADMIN: 2 };
+  var rolNombre = function (r) { return r === 2 ? "Administrador" : r === 1 ? "Edicion" : "Lectura"; };
+  var puedeEditar = function () { return sesion && sesion.rol >= ROL.EDICION; };
+  var esAdmin = function () { return sesion && sesion.rol === ROL.ADMIN; };
+
+  function esc(s) { var d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+  function todayISO() { return toISO(new Date()); }
+  function nowStamp() {
+    var d = new Date(), p = function (n) { return ("0" + n).slice(-2); };
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+  }
+  function toISO(d) {
+    if (!(d instanceof Date) || isNaN(d.getTime())) return "";
+    var off = d.getTimezoneOffset();
+    return new Date(d.getTime() - off * 60000).toISOString().slice(0, 10);
+  }
+  function normFecha(v) {
+    if (v == null) return "";
+    if (v instanceof Date) return isNaN(v.getTime()) ? "" : toISO(v);
+    var s = String(v).trim();
+    if (!s) return "";
+    if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(s)) {
+      var p = s.split("-");
+      return p[0] + "-" + ("0" + p[1]).slice(-2) + "-" + ("0" + p[2]).slice(-2);
+    }
+    var d = new Date(s);
+    if (!isNaN(d.getTime())) return toISO(d);
+    return s;
+  }
+  function fmtDate(iso) {
+    if (!iso) return "---";
+    var s = normFecha(iso);
+    if (!s) return s;
+    var d = new Date(s + "T00:00:00");
+    return d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
+  }
+  function fmtMoney(n) {
+    return (appCfg.moneda || "S/") + " " + Number(n || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+  function uid() { return "id-" + Date.now() + "-" + Math.floor(Math.random() * 10000); }
+
+  function calcCuota(monto, tasa, cuotas) {
+    if (tasa === 0) return monto / cuotas;
+    var r = tasa / 100;
+    return monto * (r * Math.pow(1 + r, cuotas)) / (Math.pow(1 + r, cuotas) - 1);
+  }
+
+  function getEstado(pr) {
+    if (pr.estado === "cancelado") return "cancelado";
+    var total = 0;
+    pagos.forEach(function (p) { if (p.prestamoId === pr.id) total += Number(p.monto || 0); });
+    if (total >= pr.montoTotal) return "pagado";
+    if (pr.fechaFin && pr.fechaFin < todayISO()) return "vencido";
+    return "activo";
+  }
+  function estadoLabel(e) {
+    return { activo: "Activo", pagado: "Pagado", vencido: "Vencido", cancelado: "Cancelado" }[e] || e;
+  }
+
+  function clienteById(id) {
+    for (var i = 0; i < clientes.length; i++) { if (clientes[i].id === id) return clientes[i]; }
+    return null;
+  }
+
+  function toast(msg) {
+    var t = $("#toast");
+    t.textContent = msg;
+    t.classList.remove("hidden");
+    setTimeout(function () { t.classList.add("hidden"); }, 2500);
+  }
+
+  function audit(msg) {
+    DB.putAuditoria({ id: uid(), fecha: nowStamp(), usuario: sesion ? sesion.nombre : "sistema", accion: msg });
+  }
+
+  // === RELOAD DATA ===
+  function reload() {
+    return Promise.all([
+      DB.getAll("clientes").then(function (r) { clientes = r; }),
+      DB.getAll("prestamos").then(function (r) { prestamos = r; }),
+      DB.getAll("pagos").then(function (r) { pagos = r; }),
+      DB.getUsuarios().then(function (r) { usuarios = r; }),
+      DB.getAuditoria(300).then(function (r) { auditoria = r; }),
+      DB.getConfig().then(function (r) { appCfg = r; applyTheme(r.colorPrimario); applyLogo(r.logo); })
+    ]);
+  }
+
+  // === THEME ===
+  function applyTheme(color) {
+    if (!color) return;
+    document.documentElement.style.setProperty("--pri", color);
+    document.documentElement.style.setProperty("--pri-dark", darken(color, 15));
+    document.documentElement.style.setProperty("--pri-light", lighten(color, 20));
+  }
+  function darken(hex, pct) {
+    var r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+    r = Math.max(0, Math.round(r * (1 - pct / 100)));
+    g = Math.max(0, Math.round(g * (1 - pct / 100)));
+    b = Math.max(0, Math.round(b * (1 - pct / 100)));
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+  function lighten(hex, pct) {
+    var r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+    r = Math.min(255, Math.round(r + (255 - r) * pct / 100));
+    g = Math.min(255, Math.round(g + (255 - g) * pct / 100));
+    b = Math.min(255, Math.round(b + (255 - b) * pct / 100));
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+
+  function applyLogo(dataUrl) {
+    var els = $(".brand-icon");
+    if (dataUrl) {
+      els.forEach(function (el) {
+        el.innerHTML = '<img src="' + dataUrl + '" style="height:24px;width:24px;border-radius:4px;object-fit:contain"/>';
+      });
+    } else {
+      els.forEach(function (el) { el.innerHTML = "$"; });
+    }
+  }
+
+  // === SIDEBAR ===
+  function toggleSidebar(open) {
+    $("#sidebar").classList.toggle("open", open);
+    $("#backdrop").classList.toggle("hidden", !open);
+  }
+
+  // === VIEWS ===
+  function setView(name) {
+    currentView = name;
+    $(".view").forEach(function (v) { v.classList.add("hidden"); });
+    var el = $("#view-" + name);
+    if (el) el.classList.remove("hidden");
+    $(".nav-item").forEach(function (n) { n.classList.toggle("active", n.dataset.view === name); });
+    toggleSidebar(false);
+    renderView(name);
+  }
+
+  function renderView(name) {
+    if (name === "dashboard") renderDashboard();
+    else if (name === "clientes") renderClientes();
+    else if (name === "prestamos") renderPrestamos();
+    else if (name === "pagos") renderPagos();
+    else if (name === "historial") renderHistorial();
+    else if (name === "reportes") initReporte();
+    else if (name === "config") renderConfig();
+  }
+
+  // === DASHBOARD ===
+  function renderDashboard() {
+    var totalM = 0, totalCobrado = 0, activos = 0, vencidos = 0;
+    prestamos.forEach(function (pr) {
+      var e = getEstado(pr);
+      totalM += Number(pr.montoTotal || 0);
+      if (e === "activo") activos++;
+      if (e === "vencido") vencidos++;
+      pagos.forEach(function (p) { if (p.prestamoId === pr.id) totalCobrado += Number(p.monto || 0); });
+    });
+    var pendiente = totalM - totalCobrado;
+    var kpiHtml = '<div class="kpi"><div class="kpi-label">Total prestamos</div><div class="kpi-value">' + prestamos.length + '</div></div>';
+    kpiHtml += '<div class="kpi"><div class="kpi-label">Monto total prestado</div><div class="kpi-value">' + fmtMoney(totalM) + '</div></div>';
+    kpiHtml += '<div class="kpi"><div class="kpi-label">Activos</div><div class="kpi-value">' + activos + '</div></div>';
+    kpiHtml += '<div class="kpi"><div class="kpi-label">Vencidos</div><div class="kpi-value">' + vencidos + '</div></div>';
+    kpiHtml += '<div class="kpi"><div class="kpi-label">Cobrado</div><div class="kpi-value">' + fmtMoney(totalCobrado) + '</div></div>';
+    kpiHtml += '<div class="kpi"><div class="kpi-label">Pendiente</div><div class="kpi-value">' + fmtMoney(pendiente) + '</div></div>';
+    $("#kpiGrid").innerHTML = kpiHtml;
+
+    var recent = prestamos.slice().sort(function (a, b) { return a.fechaInicio < b.fechaInicio ? 1 : -1; }).slice(0, 5);
+    var html = "";
+    recent.forEach(function (pr) {
+      var cl = clienteById(pr.clienteId);
+      var e = getEstado(pr);
+      html += '<div class="list-item" data-prestamo="' + pr.id + '"><div class="li-row"><div><div class="li-title">' + esc(cl ? cl.nombre : "?") + '</div><div class="li-sub">' + fmtMoney(pr.montoTotal) + ' | ' + fmtDate(pr.fechaInicio) + '</div></div><span class="badge ' + e + '">' + estadoLabel(e) + '</span></div></div>';
+    });
+    if (!recent.length) html = '<div class="empty"><p>Sin prestamos aun.</p></div>';
+    $("#dashRecent").innerHTML = html;
+  }
+
+  // === CLIENTES ===
+  function renderClientes() {
+    var q = ($("#searchCliente") || {}).value || "";
+    q = q.toLowerCase();
+    var list = clientes.filter(function (c) {
+      if (!q) return true;
+      return (c.nombre || "").toLowerCase().indexOf(q) >= 0 || (c.documento || "").indexOf(q) >= 0 || (c.telefono || "").indexOf(q) >= 0;
+    });
+    var html = "";
+    list.forEach(function (c) {
+      var prCount = prestamos.filter(function (p) { return p.clienteId === c.id; }).length;
+      html += '<div class="list-item" data-cliente="' + c.id + '"><div class="li-row"><div><div class="li-title">' + esc(c.nombre) + '</div><div class="li-sub">' + esc(c.documento || "") + (c.telefono ? ' | ' + esc(c.telefono) : '') + '</div></div><div class="li-right"><div class="li-sub">' + prCount + ' prestamo(s)</div></div></div></div>';
+    });
+    if (!list.length) html = "";
+    $("#clienteList").innerHTML = html;
+    $("#clienteEmpty").classList.toggle("hidden", list.length > 0);
+  }
+
+  // === PRESTAMOS ===
+  function renderPrestamos() {
+    var q = ($("#searchPrestamo") || {}).value || "";
+    var ef = ($("#filterEstado") || {}).value || "";
+    q = q.toLowerCase();
+    var list = prestamos.filter(function (pr) {
+      var cl = clienteById(pr.clienteId);
+      var nombre = cl ? cl.nombre.toLowerCase() : "";
+      if (q && nombre.indexOf(q) < 0 && String(pr.montoTotal).indexOf(q) < 0) return false;
+      if (ef && getEstado(pr) !== ef) return false;
+      return true;
+    });
+    var html = "";
+    list.forEach(function (pr) {
+      var cl = clienteById(pr.clienteId);
+      var e = getEstado(pr);
+      var pagado = 0;
+      pagos.forEach(function (p) { if (p.prestamoId === pr.id) pagado += Number(p.monto || 0); });
+      html += '<div class="list-item" data-prestamo="' + pr.id + '"><div class="li-row"><div><div class="li-title">' + esc(cl ? cl.nombre : "?") + '</div><div class="li-sub">' + fmtMoney(pr.montoTotal) + ' | Cuota: ' + fmtMoney(pr.cuotaMonto) + ' | Pagado: ' + fmtMoney(pagado) + '</div></div><span class="badge ' + e + '">' + estadoLabel(e) + '</span></div></div>';
+    });
+    if (!list.length) html = "";
+    $("#prestamoList").innerHTML = html;
+    $("#prestamoEmpty").classList.toggle("hidden", list.length > 0);
+  }
+
+  // === PAGOS ===
+  function renderPagos() {
+    var fp = ($("#filterPagoPrestamo") || {}).value || "";
+    var list = pagos.filter(function (p) { return !fp || p.prestamoId === fp; });
+    list.sort(function (a, b) { return a.fecha < b.fecha ? 1 : -1; });
+    var html = "";
+    list.forEach(function (p) {
+      var pr = null;
+      prestamos.forEach(function (x) { if (x.id === p.prestamoId) pr = x; });
+      var cl = pr ? clienteById(pr.clienteId) : null;
+      html += '<div class="list-item"><div class="li-row"><div><div class="li-title">' + fmtMoney(p.monto) + '</div><div class="li-sub">' + esc(cl ? cl.nombre : "?") + ' | ' + fmtDate(p.fecha) + ' | ' + esc(p.metodo || "efectivo") + '</div></div></div></div>';
+    });
+    if (!list.length) html = "";
+    $("#pagoList").innerHTML = html;
+    $("#pagoEmpty").classList.toggle("hidden", list.length > 0);
+  }
+
+  // === HISTORIAL ===
+  function renderHistorial() {
+    var fc = ($("#histCliente") || {}).value || "";
+    var ft = ($("#histTipo") || {}).value || "";
+    var fd = ($("#histDesde") || {}).value || "";
+    var fh = ($("#histHasta") || {}).value || "";
+    var items = [];
+
+    prestamos.forEach(function (pr) {
+      var cl = clienteById(pr.clienteId);
+      var cn = cl ? cl.nombre : "";
+      if (fc && pr.clienteId !== fc) return;
+      if (ft && ft !== "prestamo") return;
+      if (fd && pr.fechaInicio < fd) return;
+      if (fh && pr.fechaInicio > fh) return;
+      items.push({ fecha: pr.fechaInicio, tipo: "Prestamo", cliente: cn, desc: "Monto: " + fmtMoney(pr.montoTotal), monto: pr.montoTotal });
+    });
+
+    pagos.forEach(function (p) {
+      var pr = null;
+      prestamos.forEach(function (x) { if (x.id === p.prestamoId) pr = x; });
+      var cl = pr ? clienteById(pr.clienteId) : null;
+      var cn = cl ? cl.nombre : "";
+      if (fc && pr && pr.clienteId !== fc) return;
+      if (ft && ft !== "pago") return;
+      if (fd && p.fecha < fd) return;
+      if (fh && p.fecha > fh) return;
+      items.push({ fecha: p.fecha, tipo: "Pago", cliente: cn, desc: esc(p.metodo || "efectivo"), monto: p.monto });
+    });
+
+    prestamos.forEach(function (pr) {
+      if (pr.fechaFin && getEstado(pr) === "vencido") {
+        var cl = clienteById(pr.clienteId);
+        var cn = cl ? cl.nombre : "";
+        if (fc && pr.clienteId !== fc) return;
+        if (ft && ft !== "vencimiento") return;
+        if (fd && pr.fechaFin < fd) return;
+        if (fh && pr.fechaFin > fh) return;
+        items.push({ fecha: pr.fechaFin, tipo: "Vencimiento", cliente: cn, desc: "Prestamo vencido", monto: 0 });
+      }
+    });
+
+    items.sort(function (a, b) { return a.fecha < b.fecha ? 1 : -1; });
+    var html = "";
+    items.forEach(function (it) {
+      var color = it.tipo === "Pago" ? "color:var(--ok)" : it.tipo === "Vencimiento" ? "color:var(--danger)" : "";
+      html += '<div class="list-item"><div class="li-row"><div><div class="li-title" style="' + color + '">' + esc(it.tipo) + '</div><div class="li-sub">' + esc(it.cliente) + ' | ' + fmtDate(it.fecha) + ' | ' + esc(it.desc) + '</div></div><div class="li-right"><div class="li-title">' + fmtMoney(it.monto) + '</div></div></div></div>';
+    });
+    if (!items.length) html = "";
+    $("#histList").innerHTML = html;
+    $("#histEmpty").classList.toggle("hidden", items.length > 0);
+  }
+
+  // === REPORTES ===
+  function initReporte() {
+    var now = new Date();
+    var m = (now.getMonth() + 1 < 10 ? "0" : "") + (now.getMonth() + 1);
+    if ($("#reporteMes")) $("#reporteMes").value = now.getFullYear() + "-" + m;
+  }
+
+  function generateReport() {
+    var mes = ($("#reporteMes") || {}).value || "";
+    if (!mes) { toast("Selecciona un mes"); return; }
+    var items = [];
+    var nuevos = 0, totalPagado = 0;
+
+    prestamos.forEach(function (pr) {
+      if (pr.fechaInicio && pr.fechaInicio.indexOf(mes) === 0) {
+        var cl = clienteById(pr.clienteId);
+        items.push({ fecha: pr.fechaInicio, tipo: "Prestamo nuevo", cliente: cl ? cl.nombre : "?", desc: fmtMoney(pr.montoTotal), monto: pr.montoTotal });
+        nuevos++;
+      }
+    });
+
+    pagos.forEach(function (p) {
+      if (p.fecha && p.fecha.indexOf(mes) === 0) {
+        var pr = null;
+        prestamos.forEach(function (x) { if (x.id === p.prestamoId) pr = x; });
+        var cl = pr ? clienteById(pr.clienteId) : null;
+        items.push({ fecha: p.fecha, tipo: "Pago", cliente: cl ? cl.nombre : "?", desc: esc(p.metodo || ""), monto: p.monto });
+        totalPagado += Number(p.monto || 0);
+      }
+    });
+
+    items.sort(function (a, b) { return a.fecha < b.fecha ? 1 : -1; });
+
+    var statsHtml = '<div class="kpi"><div class="kpi-label">Nuevos prestamos</div><div class="kpi-value">' + nuevos + '</div></div>';
+    statsHtml += '<div class="kpi"><div class="kpi-label">Pagos recibidos</div><div class="kpi-value">' + fmtMoney(totalPagado) + '</div></div>';
+    statsHtml += '<div class="kpi"><div class="kpi-label">Movimientos</div><div class="kpi-value">' + items.length + '</div></div>';
+    $("#reporteStats").innerHTML = statsHtml;
+
+    var rows = "";
+    items.forEach(function (it) {
+      rows += "<tr><td>" + fmtDate(it.fecha) + "</td><td>" + esc(it.tipo) + "</td><td>" + esc(it.cliente) + "</td><td>" + esc(it.desc) + "</td><td>" + fmtMoney(it.monto) + "</td></tr>";
+    });
+    if (!rows) rows = '<tr><td colspan="5" style="text-align:center;color:var(--muted)">Sin movimientos este mes</td></tr>';
+    $("#reporteTbody").innerHTML = rows;
+    $("#reporteTitle").textContent = "Reporte: " + mes;
+  }
+
+  function exportCSV() {
+    var mes = ($("#reporteMes") || {}).value || "";
+    var items = [];
+    prestamos.forEach(function (pr) {
+      if (pr.fechaInicio && pr.fechaInicio.indexOf(mes) === 0) {
+        var cl = clienteById(pr.clienteId);
+        items.push([pr.fechaInicio, "Prestamo", cl ? cl.nombre : "", pr.montoTotal, ""]);
+      }
+    });
+    pagos.forEach(function (p) {
+      if (p.fecha && p.fecha.indexOf(mes) === 0) {
+        var pr = null;
+        prestamos.forEach(function (x) { if (x.id === p.prestamoId) pr = x; });
+        var cl = pr ? clienteById(pr.clienteId) : null;
+        items.push([p.fecha, "Pago", cl ? cl.nombre : "", p.monto, p.metodo]);
+      }
+    });
+    var csv = "Fecha,Tipo,Cliente,Monto,Detalle\n";
+    items.forEach(function (r) { csv += r.join(",") + "\n"; });
+    var blob = new Blob([csv], { type: "text/csv" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "reporte-" + mes + ".csv";
+    a.click();
+    toast("CSV exportado");
+  }
+
+  // === CONFIG ===
+  function renderConfig() {
+    if (sesion) {
+      $("#miCuentaInfo").textContent = sesion.nombre + " | DNI: " + sesion.dni + " | Permiso: " + rolNombre(sesion.rol);
+    }
+    $("#cfgEmpresa").value = appCfg.empresa || "";
+    $("#cfgTasa").value = appCfg.tasaInteres || 10;
+    $("#cfgMoneda").value = appCfg.moneda || "S/";
+    $("#cfgColor").value = appCfg.colorPrimario || "#7C3AED";
+    if (appCfg.logo) {
+      $("#logoPreview").src = appCfg.logo;
+      $("#logoPreview").classList.remove("hidden");
+    } else {
+      $("#logoPreview").classList.add("hidden");
+    }
+    renderUsuarios();
+    renderAudit();
+    renderColorGrid();
+  }
+
+  function renderUsuarios() {
+    var html = "";
+    usuarios.forEach(function (u) {
+      html += '<div class="list-item" data-edit-user="' + u.id + '"><div class="li-row"><div><div class="li-title">' + esc(u.nombre) + '</div><div class="li-sub">DNI: ' + esc(u.dni) + ' | ' + rolNombre(u.rol) + '</div></div></div></div>';
+    });
+    $("#usuariosList").innerHTML = html;
+  }
+
+  function renderAudit() {
+    var html = "";
+    auditoria.forEach(function (a) {
+      html += '<div class="list-item"><div class="li-title" style="font-size:13px">' + esc(a.usuario) + ' - ' + esc(a.accion) + '</div><div class="li-sub">' + esc(a.fecha) + '</div></div>';
+    });
+    if (!auditoria.length) html = "";
+    $("#auditList").innerHTML = html;
+    $("#auditEmpty").classList.toggle("hidden", auditoria.length > 0);
+  }
+
+  function renderColorGrid() {
+    var colors = ["#7C3AED", "#2563EB", "#059669", "#D97706", "#DC2626", "#7C3AED", "#0891B2", "#4F46E5", "#16A34A", "#EA580C", "#DB2777", "#6D28D9"];
+    var html = "";
+    colors.forEach(function (c) {
+      html += '<div class="color-swatch' + (appCfg.colorPrimario === c ? " active" : "") + '" data-color="' + c + '" style="background:' + c + '"></div>';
+    });
+    $("#colorGrid").innerHTML = html;
+  }
+
+  // === CRUD ===
+  function saveCliente() {
+    var id = $("#clId").value || uid();
+    var nombre = $("#clNombre").value.trim();
+    var doc = $("#clDoc").value.trim();
+    if (!nombre || !doc) { toast("Nombre y documento son obligatorios"); return; }
+    var obj = {
+      id: id, nombre: nombre, documento: doc,
+      telefono: $("#clTel").value.trim(),
+      direccion: $("#clDir").value.trim(),
+      email: $("#clEmail").value.trim(),
+      notas: $("#clNotas").value.trim(),
+      fechaRegistro: nowStamp()
+    };
+    DB.put("clientes", obj).then(function () {
+      audit("Cliente guardado: " + nombre);
+      toast("Cliente guardado");
+      closeModal("modalCliente");
+      return reload();
+    }).then(function () { renderClientes(); });
+  }
+
+  function savePrestamo() {
+    var clienteId = $("#prCliente").value;
+    var monto = parseFloat($("#prMonto").value);
+    var tasa = parseFloat($("#prTasa").value) || 0;
+    var cuotas = parseInt($("#prCuotas").value) || 1;
+    var entregado = parseFloat($("#prEntregado").value) || 0;
+    var fecha = $("#prFecha").value;
+    if (!clienteId || !monto || !fecha) { toast("Completa los campos obligatorios"); return; }
+    var cuotaMonto = calcCuota(monto, tasa, cuotas);
+    var frecuencia = $("#prFrecuencia").value;
+    var dias = frecuencia === "semanal" ? 7 : frecuencia === "quincenal" ? 15 : 30;
+    var totalDias = cuotas * dias;
+    var fechaFin = normFecha(new Date(new Date(fecha + "T00:00:00").getTime() + totalDias * 86400000));
+    var montoTotal = monto + (monto * tasa / 100 * cuotas);
+    var obj = {
+      id: uid(), clienteId: clienteId,
+      monto: monto, tasa: tasa, cuotas: cuotas,
+      cuotaMonto: Math.round(cuotaMonto * 100) / 100,
+      montoEntregado: entregado, montoTotal: montoTotal,
+      frecuencia: frecuencia,
+      fechaInicio: normFecha(fecha), fechaFin: fechaFin,
+      estado: "activo",
+      notas: $("#prNotas").value.trim(),
+      fechaCreacion: nowStamp()
+    };
+    DB.put("prestamos", obj).then(function () {
+      var cl = clienteById(clienteId);
+      audit("Prestamo creado: " + (cl ? cl.nombre : clienteId) + " | " + fmtMoney(montoTotal));
+      toast("Prestamo registrado");
+      closeModal("modalPrestamo");
+      return reload();
+    }).then(function () { renderPrestamos(); });
+  }
+
+  function savePago() {
+    var prestamoId = $("#pgPrestamo").value;
+    var monto = parseFloat($("#pgMonto").value);
+    var fecha = $("#pgFecha").value;
+    if (!prestamoId || !monto || !fecha) { toast("Completa los campos obligatorios"); return; }
+    var obj = {
+      id: uid(), prestamoId: prestamoId,
+      monto: monto, fecha: normFecha(fecha),
+      metodo: $("#pgMetodo").value,
+      notas: $("#pgNotas").value.trim(),
+      fechaCreacion: nowStamp()
+    };
+    DB.put("pagos", obj).then(function () {
+      audit("Pago registrado: " + fmtMoney(monto));
+      toast("Pago registrado");
+      closeModal("modalPago");
+      return reload();
+    }).then(function () { renderPagos(); });
+  }
+
+  function cancelarPrestamo(id) {
+    if (!confirm("Cancelar este prestamo?")) return;
+    var pr = null;
+    prestamos.forEach(function (x) { if (x.id === id) pr = x; });
+    if (!pr) return;
+    pr.estado = "cancelado";
+    DB.put("prestamos", pr).then(function () {
+      audit("Prestamo cancelado");
+      toast("Prestamo cancelado");
+      closeModal("modalDetalle");
+      return reload();
+    }).then(function () { renderPrestamos(); });
+  }
+
+  function saveUsuario() {
+    var id = $("#usId").value || uid();
+    var nombre = $("#usNombre").value.trim();
+    var dni = $("#usDni").value.trim();
+    if (!nombre || !dni) { toast("Nombre y DNI obligatorios"); return; }
+    var clave = $("#usClave").value.trim() || dni;
+    var rol = parseInt($("#usRol").value);
+    var obj = { id: id, nombre: nombre, dni: dni, clave: clave, rol: rol };
+    DB.putUsuario(obj).then(function () {
+      audit("Usuario guardado: " + nombre);
+      toast("Usuario guardado");
+      closeModal("modalUsuario");
+      return reload();
+    }).then(function () { renderUsuarios(); });
+  }
+
+  function deleteUsuario(id) {
+    if (id === (sesion && sesion.id)) { toast("No puedes eliminar tu propio usuario"); return; }
+    if (!confirm("Eliminar este usuario?")) return;
+    DB.deleteUsuario(id).then(function () {
+      audit("Usuario eliminado");
+      toast("Usuario eliminado");
+      closeModal("modalUsuario");
+      return reload();
+    }).then(function () { renderUsuarios(); });
+  }
+
+  // === MODALS ===
+  function openModal(id) { $(id).classList.remove("hidden"); }
+  function closeModal(id) { $(id).classList.add("hidden"); }
+
+  function openClienteForm(id) {
+    if (id) {
+      var c = clienteById(id);
+      if (!c) return;
+      $("#mcTitle").textContent = "Editar cliente";
+      $("#clId").value = c.id;
+      $("#clNombre").value = c.nombre || "";
+      $("#clDoc").value = c.documento || "";
+      $("#clTel").value = c.telefono || "";
+      $("#clDir").value = c.direccion || "";
+      $("#clEmail").value = c.email || "";
+      $("#clNotas").value = c.notas || "";
+    } else {
+      $("#mcTitle").textContent = "Nuevo cliente";
+      $("#clId").value = "";
+      $("#clNombre").value = "";
+      $("#clDoc").value = "";
+      $("#clTel").value = "";
+      $("#clDir").value = "";
+      $("#clEmail").value = "";
+      $("#clNotas").value = "";
+    }
+    openModal("#modalCliente");
+  }
+
+  function openPrestamoForm() {
+    if (!clientes.length) { toast("Registra un cliente primero"); return; }
+    var sel = $("#prCliente");
+    sel.innerHTML = "";
+    clientes.forEach(function (c) {
+      sel.innerHTML += '<option value="' + c.id + '">' + esc(c.nombre) + ' (' + esc(c.documento) + ')</option>';
+    });
+    $("#prId").value = "";
+    $("#prMonto").value = "";
+    $("#prTasa").value = appCfg.tasaInteres || 10;
+    $("#prCuotas").value = 12;
+    $("#prEntregado").value = "";
+    $("#prFecha").value = todayISO();
+    $("#prFrecuencia").value = "mensual";
+    $("#prNotas").value = "";
+    openModal("#modalPrestamo");
+  }
+
+  function openPagoForm() {
+    if (!prestamos.length) { toast("Registra un prestamo primero"); return; }
+    var sel = $("#pgPrestamo");
+    sel.innerHTML = "";
+    prestamos.forEach(function (pr) {
+      var cl = clienteById(pr.clienteId);
+      var e = getEstado(pr);
+      if (e === "cancelado" || e === "pagado") return;
+      sel.innerHTML += '<option value="' + pr.id + '">' + esc(cl ? cl.nombre : "?") + ' | ' + fmtMoney(pr.montoTotal) + '</option>';
+    });
+    $("#pgMonto").value = "";
+    $("#pgFecha").value = todayISO();
+    $("#pgMetodo").value = "efectivo";
+    $("#pgNotas").value = "";
+    updatePagoInfo();
+    openModal("#modalPago");
+  }
+
+  function updatePagoInfo() {
+    var pid = ($("#pgPrestamo") || {}).value || "";
+    var pr = null;
+    prestamos.forEach(function (x) { if (x.id === pid) pr = x; });
+    if (!pr) { var el = $("#pgInfo"); if (el) el.classList.add("hidden"); return; }
+    var pagado = 0;
+    pagos.forEach(function (p) { if (p.prestamoId === pr.id) pagado += Number(p.monto || 0); });
+    var pend = pr.montoTotal - pagado;
+    var el = $("#pgInfo");
+    el.innerHTML = "Monto total: " + fmtMoney(pr.montoTotal) + " | Pagado: " + fmtMoney(pagado) + " | Pendiente: " + fmtMoney(pend) + " | Cuota: " + fmtMoney(pr.cuotaMonto);
+    el.classList.remove("hidden");
+  }
+
+  function openDetalle(id) {
+    var pr = null;
+    prestamos.forEach(function (x) { if (x.id === id) pr = x; });
+    if (!pr) return;
+    currentDetailId = id;
+    var cl = clienteById(pr.clienteId);
+    var e = getEstado(pr);
+    var pagado = 0;
+    pagos.forEach(function (p) { if (p.prestamoId === pr.id) pagado += Number(p.monto || 0); });
+    var pend = pr.montoTotal - pagado;
+    var html = '<div class="info-box">';
+    html += '<strong>Cliente:</strong> ' + esc(cl ? cl.nombre : "?") + '<br>';
+    html += '<strong>Monto prestado:</strong> ' + fmtMoney(pr.monto) + '<br>';
+    html += '<strong>Monto total (con interes):</strong> ' + fmtMoney(pr.montoTotal) + '<br>';
+    html += '<strong>Tasa mensual:</strong> ' + pr.tasa + '%<br>';
+    html += '<strong>Cuotas:</strong> ' + pr.cuotas + ' | Cuota: ' + fmtMoney(pr.cuotaMonto) + '<br>';
+    html += '<strong>Frecuencia:</strong> ' + (pr.frecuencia || "mensual") + '<br>';
+    html += '<strong>Entregado:</strong> ' + fmtMoney(pr.montoEntregado) + '<br>';
+    html += '<strong>Inicio:</strong> ' + fmtDate(pr.fechaInicio) + ' | Fin: ' + fmtDate(pr.fechaFin) + '<br>';
+    html += '<strong>Estado:</strong> <span class="badge ' + e + '">' + estadoLabel(e) + '</span><br>';
+    html += '<strong>Pagado:</strong> ' + fmtMoney(pagado) + ' | Pendiente: ' + fmtMoney(pend);
+    if (pr.notas) html += '<br><strong>Notas:</strong> ' + esc(pr.notas);
+    html += '</div>';
+    $("#detInfo").innerHTML = html;
+
+    var phtml = "";
+    var pList = pagos.filter(function (p) { return p.prestamoId === pr.id; });
+    pList.sort(function (a, b) { return a.fecha < b.fecha ? 1 : -1; });
+    pList.forEach(function (p) {
+      phtml += '<div class="list-item"><div class="li-row"><div><div class="li-title">' + fmtMoney(p.monto) + '</div><div class="li-sub">' + fmtDate(p.fecha) + ' | ' + esc(p.metodo || "efectivo") + (p.notas ? ' | ' + esc(p.notas) : '') + '</div></div></div></div>';
+    });
+    if (!pList.length) phtml = '<div class="empty"><p>Sin pagos registrados.</p></div>';
+    $("#detPagos").innerHTML = phtml;
+    openModal("#modalDetalle");
+  }
+
+  function openUsuarioForm(id) {
+    if (id) {
+      var u = null;
+      usuarios.forEach(function (x) { if (x.id === id) u = x; });
+      if (!u) return;
+      $("#muTitle").textContent = "Editar usuario";
+      $("#usId").value = u.id;
+      $("#usNombre").value = u.nombre;
+      $("#usDni").value = u.dni;
+      $("#usClave").value = "";
+      $("#usRol").value = u.rol;
+      $("#btnDelUsuario").classList.toggle("hidden", u.id === (sesion && sesion.id));
+    } else {
+      $("#muTitle").textContent = "Nuevo usuario";
+      $("#usId").value = "";
+      $("#usNombre").value = "";
+      $("#usDni").value = "";
+      $("#usClave").value = "";
+      $("#usRol").value = "1";
+      $("#btnDelUsuario").classList.add("hidden");
+    }
+    openModal("#modalUsuario");
+  }
+
+  // === LOGIN ===
+  function doLogin() {
+    var user = ($("#loginUser") || {}).value.trim().toLowerCase();
+    var pass = ($("#loginPass") || {}).value.trim();
+    if (!user || !pass) { showLoginErr("Ingresa usuario y contrasena"); return; }
+    var found = null;
+    usuarios.forEach(function (u) {
+      if ((u.dni || "").toLowerCase() === user && u.clave === pass) found = u;
+    });
+    if (!found) { showLoginErr("Credenciales incorrectas"); return; }
+    sesion = found;
+    DB.setSesion(found).then(function () {
+      audit("Sesion iniciada: " + found.nombre);
+      afterLogin();
+    });
+  }
+
+  function showLoginErr(msg) {
+    var el = $("#loginErr");
+    el.textContent = msg;
+    el.classList.remove("hidden");
+  }
+
+  function afterLogin() {
+    $("#loginScreen").classList.add("hidden");
+    $("#topbar").classList.remove("hidden");
+    $("#mainContent").classList.remove("hidden");
+    if (sesion) {
+      $("#sesionInfo").textContent = sesion.nombre + " | " + rolNombre(sesion.rol);
+    }
+    setView("dashboard");
+  }
+
+  function doLogout() {
+    sesion = null;
+    DB.clearSesion().then(function () {
+      $("#loginScreen").classList.remove("hidden");
+      $("#topbar").classList.add("hidden");
+      $("#mainContent").classList.add("hidden");
+      toggleSidebar(false);
+    });
+  }
+
+  // === BACKUP ===
+  function exportData() {
+    Promise.all([
+      DB.getAll("clientes"), DB.getAll("prestamos"), DB.getAll("pagos"),
+      DB.getUsuarios(), DB.getAll("config"), DB.getAuditoria(9999)
+    ]).then(function (results) {
+      var data = {
+        version: CFG.APP_VERSION,
+        exportDate: nowStamp(),
+        clientes: results[0], prestamos: results[1], pagos: results[2],
+        usuarios: results[3], config: results[4], auditoria: results[5]
+      };
+      var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "prestamos-backup-" + todayISO() + ".json";
+      a.click();
+      toast("Datos exportados");
+    });
+  }
+
+  function importData(file) {
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        var data = JSON.parse(e.target.result);
+        var promises = [];
+        if (data.clientes) data.clientes.forEach(function (c) { promises.push(DB.put("clientes", c)); });
+        if (data.prestamos) data.prestamos.forEach(function (p) { promises.push(DB.put("prestamos", p)); });
+        if (data.pagos) data.pagos.forEach(function (p) { promises.push(DB.put("pagos", p)); });
+        if (data.usuarios) data.usuarios.forEach(function (u) { promises.push(DB.putUsuario(u)); });
+        if (data.config) data.config.forEach(function (c) { promises.push(DB.put("config", c)); });
+        Promise.all(promises).then(function () {
+          toast("Datos importados");
+          return reload();
+        }).then(function () { renderConfig(); });
+      } catch (err) { toast("Error al importar: " + err.message); }
+    };
+    reader.readAsText(file);
+  }
+
+  // === INIT ===
+  function init() {
+    return reload().then(function () {
+      return DB.getUsuarios().then(function (us) {
+        usuarios = us;
+        if (!usuarios.some(function (u) { return u.rol === ROL.ADMIN; })) {
+          var a = { id: "us-admin", nombre: "admin", dni: "admin", clave: "admin", rol: ROL.ADMIN };
+          usuarios.push(a);
+          return DB.putUsuario(a);
+        }
+      });
+    }).then(function () {
+      return DB.getSesion();
+    }).then(function (saved) {
+      if (saved) {
+        sesion = saved;
+        afterLogin();
+      } else {
+        $("#loginScreen").classList.remove("hidden");
+        if (appCfg.empresa) {
+          $("#loginSub").textContent = appCfg.empresa + " - Sistema de Prestamos";
+        }
+      }
+      setTimeout(function () {
+        var sp = $("#splash");
+        if (sp) sp.classList.add("gone");
+      }, 600);
+      setupEvents();
+    }).catch(function (err) {
+      console.error("Init error:", err);
+      var sp = $("#splash");
+      if (sp) sp.classList.add("gone");
+      $("#loginScreen").classList.remove("hidden");
+    });
+  }
+
+  function setupEvents() {
+    $("#btnLogin").addEventListener("click", doLogin);
+    $("#loginPass").addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); });
+    $("#btnLogout").addEventListener("click", doLogout);
+    $("#btnMenu").addEventListener("click", function () { toggleSidebar(true); });
+    $("#backdrop").addEventListener("click", function () { toggleSidebar(false); });
+
+    $(".nav-item").forEach(function (b) {
+      b.addEventListener("click", function () { setView(b.dataset.view); });
+    });
+    $("[data-close]").forEach(function (b) {
+      b.addEventListener("click", function () { closeModal(b.dataset.close); });
+    });
+    $(".toggle-card").forEach(function (h) {
+      h.addEventListener("click", function () {
+        var body = $("#" + h.dataset.toggle);
+        if (body) body.classList.toggle("hidden");
+      });
+    });
+
+    $("#btnNuevoCliente").addEventListener("click", function () { openClienteForm(); });
+    $("#btnSaveCliente").addEventListener("click", saveCliente);
+    $("#searchCliente").addEventListener("input", renderClientes);
+    $("#clienteList").addEventListener("click", function (e) {
+      var card = e.target.closest("[data-cliente]");
+      if (card) openClienteForm(card.dataset.cliente);
+    });
+
+    $("#btnNuevoPrestamo").addEventListener("click", openPrestamoForm);
+    $("#btnSavePrestamo").addEventListener("click", savePrestamo);
+    $("#searchPrestamo").addEventListener("input", renderPrestamos);
+    $("#filterEstado").addEventListener("change", renderPrestamos);
+    $("#prestamoList").addEventListener("click", function (e) {
+      var card = e.target.closest("[data-prestamo]");
+      if (card) openDetalle(card.dataset.prestamo);
+    });
+
+    $("#btnNuevoPago").addEventListener("click", openPagoForm);
+    $("#btnSavePago").addEventListener("click", savePago);
+    $("#pgPrestamo").addEventListener("change", updatePagoInfo);
+    $("#filterPagoPrestamo").addEventListener("change", renderPagos);
+
+    $("#btnCancelPrestamo").addEventListener("click", function () {
+      if (currentDetailId) cancelarPrestamo(currentDetailId);
+    });
+    $("#btnPagoFromDet").addEventListener("click", function () {
+      closeModal("modalDetalle");
+      openPagoForm();
+    });
+
+    $("#btnHistSearch").addEventListener("click", renderHistorial);
+    $("#btnHistClear").addEventListener("click", function () {
+      $("#histCliente").value = "";
+      $("#histTipo").value = "";
+      $("#histDesde").value = "";
+      $("#histHasta").value = "";
+      renderHistorial();
+    });
+
+    $("#btnGenReporte").addEventListener("click", generateReport);
+    $("#btnExportCsv").addEventListener("click", exportCSV);
+
+    $("#btnSaveNegocio").addEventListener("click", function () {
+      appCfg.empresa = $("#cfgEmpresa").value.trim();
+      appCfg.tasaInteres = parseFloat($("#cfgTasa").value) || 10;
+      appCfg.moneda = $("#cfgMoneda").value;
+      Promise.all([DB.setConfig("empresa", appCfg.empresa), DB.setConfig("tasaInteres", appCfg.tasaInteres), DB.setConfig("moneda", appCfg.moneda)]).then(function () {
+        audit("Configuracion del negocio actualizada");
+        toast("Guardado");
+      });
+    });
+
+    $("#colorGrid").addEventListener("click", function (e) {
+      var sw = e.target.closest(".color-swatch");
+      if (sw) {
+        $(".color-swatch").forEach(function (s) { s.classList.remove("active"); });
+        sw.classList.add("active");
+        $("#cfgColor").value = sw.dataset.color;
+      }
+    });
+
+    $("#btnSaveApariencia").addEventListener("click", function () {
+      var color = $("#cfgColor").value;
+      appCfg.colorPrimario = color;
+      applyTheme(color);
+      DB.setConfig("colorPrimario", color).then(function () {
+        audit("Color actualizado");
+        toast("Apariencia guardada");
+      });
+    });
+
+    $("#logoInput").addEventListener("change", function (e) {
+      if (e.target.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+          var dataUrl = ev.target.result;
+          appCfg.logo = dataUrl;
+          applyLogo(dataUrl);
+          DB.setConfig("logo", dataUrl).then(function () {
+            $("#logoPreview").src = dataUrl;
+            $("#logoPreview").classList.remove("hidden");
+            toast("Logo actualizado");
+          });
+        };
+        reader.readAsDataURL(e.target.files[0]);
+      }
+    });
+
+    $("#btnClearLogo").addEventListener("click", function () {
+      appCfg.logo = "";
+      applyLogo("");
+      DB.setConfig("logo", "").then(function () {
+        $("#logoPreview").classList.add("hidden");
+        toast("Logo eliminado");
+      });
+    });
+
+    $("#btnMiPerfil").addEventListener("click", function () {
+      if (sesion) openUsuarioForm(sesion.id);
+    });
+    $("#btnNuevoUsuario").addEventListener("click", function () { openUsuarioForm(); });
+    $("#btnSaveUsuario").addEventListener("click", saveUsuario);
+    $("#btnDelUsuario").addEventListener("click", function () {
+      var id = $("#usId").value;
+      if (id) deleteUsuario(id);
+    });
+    $("#usuariosList").addEventListener("click", function (e) {
+      var card = e.target.closest("[data-edit-user]");
+      if (card) openUsuarioForm(card.dataset.editUser);
+    });
+
+    $("#btnExport").addEventListener("click", exportData);
+    $("#btnImport").addEventListener("click", function () { $("#fileImport").click(); });
+    $("#fileImport").addEventListener("change", function (e) {
+      if (e.target.files[0]) importData(e.target.files[0]);
+      e.target.value = "";
+    });
+
+    var historialClientes = $("#histCliente");
+    if (historialClientes) {
+      historialClientes.innerHTML = '<option value="">Todos los clientes</option>';
+    }
+  }
+
+  function populateHistClientes() {
+    var sel = $("#histCliente");
+    if (!sel) return;
+    sel.innerHTML = '<option value="">Todos los clientes</option>';
+    clientes.forEach(function (c) {
+      sel.innerHTML += '<option value="' + c.id + '">' + esc(c.nombre) + '</option>';
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>
 </body>
 </html>
