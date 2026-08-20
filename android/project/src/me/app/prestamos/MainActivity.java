@@ -7,18 +7,25 @@ import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.ConsoleMessage;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends Activity {
 
     private WebView webView;
+    private Map<String, String> storage = new HashMap<String, String>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,9 +43,8 @@ public class MainActivity extends Activity {
 
         WebSettings ws = webView.getSettings();
         ws.setJavaScriptEnabled(true);
-        ws.setDomStorageEnabled(true);
-        ws.setDatabaseEnabled(true);
-        ws.setAllowFileAccess(true);
+
+        webView.addJavascriptInterface(new StorageBridge(), "AndroidStorage");
 
         webView.setWebViewClient(new WebViewClient());
         webView.setWebChromeClient(new WebChromeClient() {
@@ -48,7 +54,7 @@ public class MainActivity extends Activity {
 
         try {
             String html = readAsset("www/index.html");
-            webView.loadDataWithBaseURL("http://localhost/", html, "text/html", "UTF-8", null);
+            webView.loadData(html, "text/html", "UTF-8");
         } catch (Exception e) {
             webView.loadData("<html><body><h1>Error</h1><p>" + e.getMessage() + "</p></body></html>", "text/html", "UTF-8");
         }
@@ -62,6 +68,24 @@ public class MainActivity extends Activity {
         while ((n = is.read(buf)) != -1) baos.write(buf, 0, n);
         is.close();
         return baos.toString("UTF-8");
+    }
+
+    public class StorageBridge {
+        @JavascriptInterface
+        public String getItem(String key) {
+            String val = storage.get(key);
+            return val != null ? val : "null";
+        }
+
+        @JavascriptInterface
+        public void setItem(String key, String value) {
+            storage.put(key, value);
+        }
+
+        @JavascriptInterface
+        public void removeItem(String key) {
+            storage.remove(key);
+        }
     }
 
     @Override

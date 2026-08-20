@@ -1,8 +1,14 @@
 (function () {
   "use strict";
 
+  var hasBridge = (typeof window.AndroidStorage !== "undefined");
+
   function lsGet(store) {
     try {
+      if (hasBridge) {
+        var raw = window.AndroidStorage.getItem("db_" + store);
+        return (raw && raw !== "null") ? JSON.parse(raw) : [];
+      }
       var raw = localStorage.getItem("db_" + store);
       return raw ? JSON.parse(raw) : [];
     } catch (e) { return []; }
@@ -10,7 +16,12 @@
 
   function lsSet(store, arr) {
     try {
-      localStorage.setItem("db_" + store, JSON.stringify(arr));
+      var json = JSON.stringify(arr);
+      if (hasBridge) {
+        window.AndroidStorage.setItem("db_" + store, json);
+        return;
+      }
+      localStorage.setItem("db_" + store, json);
     } catch (e) {}
   }
 
