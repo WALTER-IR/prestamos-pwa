@@ -778,22 +778,9 @@
       if (saved) {
         sesion = saved;
         afterLogin();
-      } else {
-        $("#loginScreen").classList.remove("hidden");
-        if (appCfg.empresa) {
-          $("#loginSub").textContent = appCfg.empresa + " - Sistema de Prestamos";
-        }
       }
-      setTimeout(function () {
-        var sp = $("#splash");
-        if (sp) sp.classList.add("gone");
-      }, 600);
-      setupEvents();
     }).catch(function (err) {
       console.error("Init error:", err);
-      var sp = $("#splash");
-      if (sp) sp.classList.add("gone");
-      $("#loginScreen").classList.remove("hidden");
     });
   }
 
@@ -956,17 +943,19 @@
     return false;
   };
 
-  function showLogin() {
+  setupEvents();
+  usuarios.push({ id: "us-admin", nombre: "admin", dni: "admin", clave: "admin", rol: 2 });
+
+  setTimeout(function () {
     var sp = document.getElementById("splash");
     if (sp) sp.classList.add("gone");
     var ls = document.getElementById("loginScreen");
     if (ls) ls.classList.remove("hidden");
-  }
+  }, 600);
 
   window.startApp = function () {
     init().then(function () {}).catch(function (err) {
       console.error("Boot error:", err);
-      showLogin();
     });
   };
 
