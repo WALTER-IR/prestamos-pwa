@@ -17,7 +17,7 @@ $html = $html -replace '<script src="js/app.js"></script>', "<script>$appjs</scr
 $html = $html -replace '<link rel="manifest" href="manifest.webmanifest"/>', ''
 $html = $html -replace '<link rel="icon" type="image/png" href="icons/icon-192.png"/>', ''
 
-$html | Out-File "$dest\index.html" -Encoding UTF8 -NoNewline
+[System.IO.File]::WriteAllText("$dest\index.html", $html, (New-Object System.Text.UTF8Encoding $false))
 
 Write-Host "Inline HTML generated: $dest\index.html"
 $f = Get-Item "$dest\index.html"

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
@@ -25,7 +26,6 @@ import java.util.Map;
 public class MainActivity extends Activity {
 
     private WebView webView;
-    private String baseUrl = "https://appassets.androidplatform.net/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +41,10 @@ public class MainActivity extends Activity {
         webView = new WebView(this);
         setContentView(webView);
 
+        if (Build.VERSION.SDK_INT >= 19) {
+            webView.setWebContentsDebuggingEnabled(true);
+        }
+
         WebSettings ws = webView.getSettings();
         ws.setJavaScriptEnabled(true);
         ws.setDomStorageEnabled(true);
@@ -53,7 +57,6 @@ public class MainActivity extends Activity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString();
-                if (url.startsWith(baseUrl)) return false;
                 if (url.startsWith("http://") || url.startsWith("https://")) {
                     try {
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
@@ -65,11 +68,7 @@ public class MainActivity extends Activity {
 
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                String url = request.getUrl().toString();
-                if (!url.startsWith(baseUrl)) return null;
-                String path = url.substring(baseUrl.length());
-                if (path.isEmpty() || path.equals("/")) return null;
-                return serveAsset(path);
+                return null;
             }
         });
 
@@ -78,9 +77,15 @@ public class MainActivity extends Activity {
             public boolean onConsoleMessage(ConsoleMessage cm) { return true; }
         });
 
-        String html = loadAsset("www/index.html");
-        if (html != null) {
-            webView.loadDataWithBaseURL(baseUrl, html, "text/html", "UTF-8", null);
+        try {
+            String html = loadAsset("www/index.html");
+            if (html != null && html.length() > 100) {
+                webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
+            } else {
+                webView.loadData(getErrorHtml("No se pudo cargar el contenido"), "text/html", "UTF-8");
+            }
+        } catch (Exception e) {
+            webView.loadData(getErrorHtml("Error: " + e.getMessage()), "text/html", "UTF-8");
         }
     }
 
@@ -88,39 +93,22 @@ public class MainActivity extends Activity {
         try {
             InputStream is = getAssets().open(path);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            byte[] buf = new byte[4096];
+            byte[] buf = new byte[8192];
             int n;
             while ((n = is.read(buf)) != -1) baos.write(buf, 0, n);
             is.close();
-            return baos.toString("UTF-8");
+            return new String(baos.toByteArray(), "UTF-8");
         } catch (IOException e) {
             return null;
         }
     }
 
-    private WebResourceResponse serveAsset(String path) {
-        try {
-            InputStream is = getAssets().open("www/" + path);
-            String mime = getMime(path);
-            Map<String, String> headers = new HashMap<String, String>();
-            headers.put("Access-Control-Allow-Origin", "*");
-            return new WebResourceResponse(mime, "UTF-8", 200, "OK", headers, is);
-        } catch (IOException e) {
-            return null;
-        }
-    }
-
-    private String getMime(String path) {
-        if (path.endsWith(".html") || path.endsWith(".htm")) return "text/html";
-        if (path.endsWith(".css")) return "text/css";
-        if (path.endsWith(".js")) return "application/javascript";
-        if (path.endsWith(".json")) return "application/json";
-        if (path.endsWith(".png")) return "image/png";
-        if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
-        if (path.endsWith(".svg")) return "image/svg+xml";
-        if (path.endsWith(".ico")) return "image/x-icon";
-        if (path.endsWith(".webmanifest")) return "application/manifest+json";
-        return "application/octet-stream";
+    private String getErrorHtml(String msg) {
+        return "<html><body style='display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;text-align:center;padding:20px'>"
+            + "<div><h1 style='color:#7C3AED'>Gestion de Prestamos</h1>"
+            + "<p style='color:#666'>" + msg + "</p>"
+            + "<p style='color:#999;font-size:12px'>Cierra y vuelve a abrir la app</p>"
+            + "</div></body></html>";
     }
 
     @Override

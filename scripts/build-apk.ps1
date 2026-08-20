@@ -23,7 +23,7 @@ if ($LASTEXITCODE -ne 0) { throw "aapt2 compile failed" }
 Remove-Item "$build\gen" -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path "$build\gen" | Out-Null
 
-& "$bt\aapt2.exe" link -o "$build\base.apk" -I $plat --manifest "$proj\AndroidManifest.xml" --java "$build\gen" "$build\compiled_res.zip" --auto-add-overlay
+& "$bt\aapt2.exe" link -o "$build\base.apk" -I $plat --manifest "$proj\AndroidManifest.xml" --java "$build\gen" -A "$proj\assets" "$build\compiled_res.zip" --auto-add-overlay
 if ($LASTEXITCODE -ne 0) { throw "aapt2 link failed" }
 
 Write-Host "== 2/5 Java =="
