@@ -9,7 +9,9 @@
   }
 
   function lsSet(store, arr) {
-    localStorage.setItem("db_" + store, JSON.stringify(arr));
+    try {
+      localStorage.setItem("db_" + store, JSON.stringify(arr));
+    } catch (e) {}
   }
 
   var DB = {
