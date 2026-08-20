@@ -1552,15 +1552,29 @@ select.finput{appearance:auto}
 
   window.onerror = function (msg, url, line) {
     var d = document.getElementById("splash");
-    if (d) { d.innerHTML = "<div style='padding:20px;color:#fff;font-size:14px;text-align:left'>ERROR: " + msg + " (L" + line + ")</div>"; }
+    if (d) { d.innerHTML = "<div style='padding:20px;color:#fff;font-size:14px;text-align:left'>ERROR: " + msg + " (L" + line + ")</div>"; d.classList.remove("gone"); }
     return false;
   };
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
+  var _booted = false;
+  function boot() {
+    if (_booted) return;
+    _booted = true;
+    init().then(function () {}).catch(function (err) {
+      console.error("Boot error:", err);
+      var sp = document.getElementById("splash");
+      if (sp) sp.classList.add("gone");
+      var ls = document.getElementById("loginScreen");
+      if (ls) ls.classList.remove("hidden");
+    });
   }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+  setTimeout(boot, 500);
 })();
 </script>
 </body>
